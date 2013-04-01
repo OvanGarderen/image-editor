@@ -12,7 +12,7 @@ EXECUTABLE=img
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
 
-objects/%.o: src/%.c
+objects/%.o: src/%.c 
 	$(CC) $(CFLAGS) $(DBG) $(INCLUDE) $< -o $@ $(LDFLAGS)
 
 run:	$(EXECUTABLE)
