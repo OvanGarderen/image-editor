@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #include "colors.h"
 //
@@ -12,17 +12,35 @@ Color c_cyan    = {0   ,0xFF,0xFF,0xFF};
 Color c_fuchsia = {0xFF,0   ,0xFF,0xFF}; 
 
 Color c_white   = {0xFF,0xFF,0xFF,0xFF};
-Color c_ltgray  = {90  ,90  ,90  ,255};
-Color c_gray    = {80  ,80  ,80  ,255};
-Color c_dkgray  = {60  ,60  ,60  ,255};
+Color c_ltgray  = {90  ,90  ,90  , 255};
+Color c_gray    = {80  ,80  ,80  , 255};
+Color c_dkgray  = {60  ,60  ,60  , 255};
 Color c_black   = {0   ,0   ,0   ,0xFF};
 Color c_orange  = {0xFF,0xA5,0   ,0xFF};
+
+Color c_trans   = {0xFF,0xFF,0xFF,0   };
+
 
 Uint32 intColor(Color c){
   return (Uint32)( c.r *rmult +
 		   c.g *gmult +
 		   c.b *bmult +
 		   c.a *amult);
+}
+
+Uint32 intColor_fmt(Color c, SDL_PixelFormat* fmt){
+  return (Uint32)((c.r << fmt->Rshift) +
+		  (c.g << fmt->Gshift) +
+		  (c.b << fmt->Bshift) +
+		  (c.a << fmt->Ashift));
+}
+
+Color Colorint_fmt(Uint32 in, SDL_PixelFormat* fmt){
+  return (Color){
+    (in & fmt->Rmask) >> fmt->Rshift, 
+      (in & fmt->Gmask) >> fmt->Gshift, 
+      (in & fmt->Bmask) >> fmt->Bshift, 
+      (in & fmt->Amask) >> fmt->Ashift};
 }
 
 float hsv_wave(float input){
@@ -130,7 +148,8 @@ void add_standard_colors(Colorlist* cl){
     {"green",c_green},
     {"yellow",c_yellow},
     {"cyan",c_cyan},
-    {"fuchsia",c_fuchsia}
+    {"fuchsia",c_fuchsia},
+    {"trans",c_trans}
   };
   fill_Colorlist(cl,color_array,sizeof(color_array)/sizeof(Colordef_el));
 }
@@ -144,14 +163,16 @@ int parse_Color(Colorlist* collist, char* arg, Color* dest){
 	Color c = {(rgb & 0xff0000) >> 16,
 		   (rgb & 0x00ff00) >> 8,
 		   (rgb & 0x0000ff),
-		   255};
+		   dest->a};
 	*dest = c;
 	return 1;
       }
     } else { /* color is named */
       Colordef* cd;
-      if( cd = find_Colordef(collist,arg)){
-	*dest = cd->c; 
+      if( (cd = find_Colordef(collist,arg)) ){
+	Uint8 a = dest->a;
+	*dest = cd->c;
+	dest->a = a;
 	return 1;
       }
     }

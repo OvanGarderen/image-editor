@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Wall -std=c99
+CFLAGS=-c -Wall -Werror=implicit -Werror=shadow -Wextra -pedantic -std=gnu99
 INCLUDE=$(shell pkg-config --cflags glib-2.0) $(shell sdl-config --cflags)
 LDFLAGS=$(shell sdl-config --libs) -lSDL_image -lSDL_gfx $(shell pkg-config --libs glib-2.0)
 #-LSDL -lSDL -lSDL_image -lSDL_gfx -lglib-2.0
@@ -14,6 +14,7 @@ $(EXECUTABLE): $(OBJECTS)
 
 objects/%.o: src/%.c 
 	$(CC) $(CFLAGS) $(DBG) $(INCLUDE) $< -o $@ $(LDFLAGS)
+	@echo -e "\033[31m----------------------------------------------------------\033[0m"
 
 run:	$(EXECUTABLE)
 	./$(EXECUTABLE)

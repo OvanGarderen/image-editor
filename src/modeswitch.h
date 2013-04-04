@@ -15,6 +15,7 @@ struct modelist {
 struct modespec {
   char* name;
   void* vars;
+  int (*call)(Modespec* self, char* args);
   void (*draw)(Modespec* self);
   void (*activate)(Modespec* self);
   int (*keyhandler)(Modespec* self, SDL_KeyboardEvent* key);
@@ -40,4 +41,5 @@ void clean_Modelist(Modelist* ml);
 void _destruct_Modespec(gpointer key, gpointer value, gpointer userdata);
 
 int fill_Modelist(Modelist* ml, Modespec_el* array, int num);
-
+Modespec* init__Modespec(Modespec_el* context);
+int call__Modespec(Modelist* ml, char* fullcomm);

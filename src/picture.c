@@ -18,17 +18,18 @@ Picture init_Picture(unsigned int w, unsigned int h){
   ret.h = h;
   SDL_Surface* temp = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCALPHA,w,h,32,
 				     rmask,gmask,bmask,amask);
-  ret.surface = SDL_DisplayFormatAlpha(temp);
-  SDL_FreeSurface(temp);
+  puts("before");
+
+  ret.surface = temp;
   ret.updated = 0;
   return ret;
 }
 
 void clear_picture(Picture p,Color c){
-  /* somehow SDL fuck up red and blue but fuck it*/
+  /* somehow SDL fucks up red and blue but fuck it*/
   Color dummy = c;
-  dummy.r = c.b;
-  dummy.b = c.r;
+  //dummy.r = c.b;
+  //dummy.b = c.r;
   SDL_FillRect(p.surface,NULL,
 	       SDL_SwapBE32(intColor(dummy)));
 }

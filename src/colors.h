@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <SDL.h>
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 #define  rmult 0x01000000
@@ -19,6 +20,8 @@ typedef struct{
 } Color;
 
 Uint32 intColor(Color c);
+Uint32 intColor_fmt(Color c, SDL_PixelFormat* fmt);
+Color Colorint_fmt(Uint32 in,SDL_PixelFormat* fmt);
 float hsv_wave(float input);
 float hsv_r_wave(float input);
 float hsv_g_wave(float input);
@@ -40,6 +43,8 @@ Color c_gray;
 Color c_dkgray;
 Color c_black;
 Color c_orange;
+
+Color c_trans;
 
 typedef struct colordef_el Colordef_el;
 typedef struct colordef Colordef;

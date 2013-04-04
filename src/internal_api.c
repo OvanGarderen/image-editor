@@ -1,3 +1,4 @@
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_gfxPrimitives.h>
@@ -24,10 +25,13 @@
 
 SDL_Surface* init_videomode(){
   SDL_Surface* scr = SDL_SetVideoMode(1000,1000,32,
-                                      SDL_SWSURFACE | SDL_RESIZABLE );
+                                      SDL_SWSURFACE | SDL_RESIZABLE);
   if(!scr){
     print_SDL_error("videomode");
   }
+
+  SDL_WM_SetCaption("Image Editor", NULL );
+
   return scr;
 }
 
@@ -37,17 +41,20 @@ void print_SDL_error(char * type){
 
 }
 
+void print_SurfaceFormat(SDL_Surface* surf){
+  SDL_PixelFormat * fmt = surf->format;
+  printf("bpp:\t\t %d\n",fmt->BitsPerPixel);
+  printf("Bpp:\t\t %d\n",fmt->BytesPerPixel);
+  printf("maskRGBA:\t %x,%x,%x,%x\n",fmt->Rmask,fmt->Gmask,fmt->Bmask,fmt->Amask);
+  printf("shiftRGBA:\t %d,%d,%d,%d\n",fmt->Rshift,fmt->Gshift,fmt->Bshift,fmt->Ashift);
+  printf("lossRGBA:\t %d,%d,%d,%d\n",fmt->Rloss,fmt->Gloss,fmt->Bloss,fmt->Aloss);
+  printf("colorkey:\t %x\n",fmt->colorkey);
+  printf("alpha:\t %d\n",fmt->alpha);
+}
+
 void resize_window(int w, int h){
-  SDL_Surface* old = SDL_ConvertSurface(global.screen,global.screen->format,0);
   SDL_Surface* new = SDL_SetVideoMode(w,h,32,SDL_SWSURFACE | SDL_RESIZABLE);
   SDL_FreeSurface(global.screen);
-
-  /* only copy the part above the UIbar */
-  SDL_Rect r;
-  r.x = 0;
-  r.y = 0;
-  r.w = global.screenw;
-  r.h = global.screenh-16;
 
   /* set several environment variables */
   global.screen = new;
@@ -55,16 +62,12 @@ void resize_window(int w, int h){
   global.screenh= h;
   clear_window(c_white);
 
-  /* Copy old contents of window */
-  SDL_BlitSurface(old,&r,new,NULL);
-  SDL_FreeSurface(old);
-
   SDL_Flip(global.screen);
 }
 
 void clear_window(Color c){
   SDL_FillRect(global.screen,NULL,
-               SDL_SwapBE32(intColor(c)));
+               intColor_fmt(c,global.screen->format));
 }
 
 /*
@@ -127,7 +130,9 @@ void update_inputbuffer(SDL_keysym k, char* message){
  */
 
 void update_UIstr(){
-  snprintf(global.UIstr,300,"%s> [%s] :: %s ::",global.UImode,global.UImmode,global.UImess);
+    snprintf(global.UIstr,300,"%s> [%s] :: %s :: %s%c",
+	     global.UImode,global.UImmode,global.UImess,global.filename,
+	     (global.saved ? ' ' : '*') );
 }
 
 int set_UImess(const char* mess, ...){
@@ -143,6 +148,11 @@ int set_UImode(char* mode){
   strncpy(global.UImode,mode,30);
   Modespec* mode_cur = get_Modespec(global.modelist,mode);
   xsafe_method_call(mode_cur,activate);
+  return 0;
+}
+
+int set_filename(char* fn){
+  strncpy(global.filename,fn,200);
   return 0;
 }
 
@@ -196,4 +206,34 @@ char* modname(char* name,char identifier){
     return name;
   }
   return NULL;
+}
+
+void update_color_from_mouse(Color* c,int sat,int alpha){
+  int norm = fmin(255.0, 3*norm_Point(add_Point( global.mc, min_Point(global.m))));
+  int arg = (127.0/M_PI) *(M_PI + arg_Point(add_Point( global.mc, min_Point(global.m))));
+  *c = hsv2Color(arg,sat,norm,alpha);
+}
+
+int save_buffer(char* filename){
+  char* fn = malloc(strlen(filename)+strlen(".bmp")+1);
+  sprintf(fn,"%s.bmp",filename);
+
+  int succes = SDL_SaveBMP(global.pic.surface,fn);
+  
+  global.saved = true;
+  set_filename(fn);
+  free(fn);
+  return succes;
+}
+
+int load_buffer(char* filename){
+  SDL_Surface* img = IMG_Load(filename);
+  if(img){
+    SDL_BlitSurface(img,NULL,global.pic.surface,NULL);
+    SDL_FreeSurface(img);
+    global.saved = true;
+    set_filename(filename);
+    return 0;
+  }
+  return -1;
 }

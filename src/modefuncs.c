@@ -42,10 +42,13 @@ int call_Modefunc(Funclist * fl, char * comm){
   Funcdef* f;
 
   if(comm && fl){
-    cpy = malloc(strlen(comm));
+    cpy = malloc(strlen(comm)+1);
     strcpy(cpy,comm);
 
     name = strtok(cpy," ");
+    if(!name)
+      return -1;
+
     args = (strlen(name) < strlen(comm)) ? cpy + strlen(name) + 1 : NULL;
 
     f = find_Funcdef(fl,name);
@@ -69,6 +72,6 @@ void fill_Funclist(Funclist* func_list, Funcdef_el* func_array, int num){
 }
 
 int lel(char* attr) {
-  printf("lel\n");
+  printf("lel: %s\n",attr);
   return 666;
 }
