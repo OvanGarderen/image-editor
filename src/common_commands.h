@@ -1,9 +1,9 @@
 #pragma once
 
-int comm__brush_change_size(char* args);
-int comm__color(char* args);
-int comm__clearscreen(char* args);
-int comm__message_random(char* args);
-int comm__set_UImess(char* mess);
-int comm__set_UImode(char* mode);
-int comm__quit(char* args);
+int comm__lel(int argnum, char** args);
+int comm__brush_change_size(int argnum, char** args);
+int comm__clearscreen(int argnum, char** args);
+int comm__message_random(int argnum, char** args);
+int comm__set_UImess(int argnum, char** args);
+int comm__set_UImode(int argnum, char** args);
+int comm__quit(int argnum, char** args);

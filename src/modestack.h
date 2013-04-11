@@ -16,3 +16,4 @@ struct modestack {
 Modestack* push_Modestack(Modestack* ms, char* mode, char* mmode);
 Modestack* pop_Modestack(Modestack* ms);
 
+void destruct_Modestack(Modestack* ms);

@@ -4,9 +4,9 @@
 #include "colors.h"
 
 typedef struct {	
-  SDL_Surface* surface;
+  SDL_Surface* primary;
+  SDL_Surface* drawing;
   int updated;
-  unsigned int w,h;
 } Picture;
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -21,5 +21,9 @@ typedef struct {
 #define  amask 0xff000000
 #endif
 
-Picture init_Picture(unsigned int w, unsigned int h);
-void clear_picture(Picture p,Color c);
+int init_Picture(Picture* p, unsigned int w, unsigned int h);
+SDL_Surface* get_drawingsurf_Picture(Picture* p);
+void blit_Picture(SDL_Surface* dest, Picture* p);
+void commit_Picture(Picture* p);
+void clear_Picture(Picture* p,Color c);
+void destruct_Picture(Picture* p);

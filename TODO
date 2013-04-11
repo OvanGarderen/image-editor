@@ -1,7 +1,8 @@
 TODO:
 
 - cleanup code
-- add aa-thick lines
-- cleanup code
-- convert current implementation to mode-based
-- add comments to code
+- convert current implementation to mode-based ~~ almost done
+- add comments to code ~~ logging system in place but still needs work
+x fix the automatic color adder ~ fixed
+- cleanup "internal_api.h"
+- add features and more modes 

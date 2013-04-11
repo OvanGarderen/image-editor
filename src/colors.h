@@ -40,6 +40,7 @@ Color c_fuchsia;
 Color c_white;
 Color c_ltgray;
 Color c_gray;
+Color c_dkishgray;
 Color c_dkgray;
 Color c_black;
 Color c_orange;
@@ -68,6 +69,8 @@ struct colordef_el{
 
 Colordef* find_Colordef(Colorlist* cl, char* name);
 void add_Colordef(Colorlist* cl, char* name, Color c);
-void fill_Colorlist(Colorlist* color_list, Colordef_el* color_array, int num);
+void fill_Colorlist(Colorlist* cl, Colordef_el* color_array, int num);
+void clean_Colorlist(Colorlist* cl);
 void add_standard_colors(Colorlist* cl);
 int parse_Color(Colorlist* collist, char* arg, Color* dest);
+Color index_Colordef(Colorlist* cl, int index);

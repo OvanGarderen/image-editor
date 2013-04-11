@@ -15,7 +15,7 @@ struct modelist {
 struct modespec {
   char* name;
   void* vars;
-  int (*call)(Modespec* self, char* args);
+  int (*call)(Modespec* self, int numargs, char** args);
   void (*draw)(Modespec* self);
   void (*activate)(Modespec* self);
   int (*keyhandler)(Modespec* self, SDL_KeyboardEvent* key);
@@ -32,7 +32,7 @@ struct modespec_el {
 };
 
 #define method_call(object,method,...) ((object)->method((object) , ##__VA_ARGS__))
-#define xsafe_method_call(object,method,...) if(object){if((object)->method){method_call(object,method ,##__VA_ARGS__);}}
+#define xsafe_method_call(object,method,...) if((object) && (object)->method){method_call(object,method ,##__VA_ARGS__);}
 
 Modelist* create_Modelist(void);
 void add_Modespec(Modelist* ml, Modespec* spec);

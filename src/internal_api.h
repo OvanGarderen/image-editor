@@ -7,8 +7,10 @@
 #include "picture.h"
 #include "brush.h"
 #include "modestack.h"
-#include "modefuncs.h"
+#include "funcdefs.h"
 #include "modeswitch.h"
+
+#include "logging.h"
 
 /* GLOBAL VARIABLES */
 
@@ -20,37 +22,37 @@ struct {
   bool mb_down;
   bool suppres;
   SDL_Event event;
-  Brush brush;
-  Color color;
+  Brush* brush;
+  Color* color;
   Point m;
   Point mprev;
   Point mc;
   Modestack* modestack;
   Modelist* modelist;
-  char filename[200];
-  char saved;
+  char* filename;
+  int* saved;
   char UIstr[301];
   char UImode[30];
   char UImmode[10];
   char UImess[200];
-  bool UI2input;
+  int* UI2input;
   char inputbuffer[256];
   Funclist funcs;
   Colorlist colorlist;
+  LOG log;
 } global;
 
 /*
  * SCREEN AND SDL
  */
 
-SDL_Surface* init_videomode();
-void print_SDL_error(char * type);
+SDL_Surface* init_videomode(int w, int h);
 void resize_window(int w, int h);
 void clear_window(Color c);
 void print_SurfaceFormat(SDL_Surface* surf);
 
 /* IO */
-void update_inputbuffer(SDL_keysym k, char* message);
+int execute_text(char* text);
 
 /* UI INTERACTION */
 void update_UIstr(void);
@@ -68,9 +70,19 @@ void update_color_from_mouse(Color* c,int sat,int alpha);
 int save_buffer(char* filename);
 int load_buffer(char* filename);
 
+/* REGISTERING GLOBAL VARS */
+int register__global_brush(Brush* b);
+int register__global_color(Color* c);
+int register__global_filename(char* filename);
+int register__global_saved(int* saved);
+int register__global_UI2input(int* ui2input);
+
+/* AND OTHER THINGS */
+int register__function(char* name, Funkyfunc f);
 
 /* MACROS */
-#define execute(A) call_Modefunc(&global.funcs,A)
+#define execute(A) call_Funcdef(&global.funcs,A)
 #define arraylen(A) (sizeof(A)/sizeof(A[0]))
+
 
 
