@@ -31,8 +31,8 @@ Modespec* init__brush(Modespec_el* context) {
 }
 
 void activate__brush(Modespec* self) {
-  brushvars.suppres = false;
-  brushvars.active = false;
+  brushvars.suppres = 0;
+  brushvars.active = 0;
   brushvars.brush_col = *global.color;
 }
 
@@ -52,11 +52,11 @@ int clickhandler__brush(Modespec* self, SDL_MouseButtonEvent* mbev) {
 		  pos,
 		  brushvars.brush_col);
     }
-    brushvars.active = true;
+    brushvars.active = 1;
   } 
   else if( mbev->button == SDL_BUTTON_LEFT) {
     commit_Picture(&global.pic);
-    brushvars.active = false;
+    brushvars.active = 0;
   }
   return 0;
 }
@@ -86,7 +86,7 @@ int keyhandler__brush(Modespec* self, SDL_KeyboardEvent* key) {
   if( key->state == SDL_PRESSED ) {
     switch(key->keysym.sym) {
     case SDLK_TAB:
-      brushvars.suppres = true;
+      brushvars.suppres = 1;
       break;
     case SDLK_a:
       brush_change_size(& (brushvars.brush),1); 
@@ -102,7 +102,7 @@ int keyhandler__brush(Modespec* self, SDL_KeyboardEvent* key) {
   } else {
     switch(key->keysym.sym) {
     case SDLK_TAB:
-      brushvars.suppres = false;
+      brushvars.suppres = 0;
       break;
     default:
       return 0;

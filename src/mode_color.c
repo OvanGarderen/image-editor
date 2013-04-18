@@ -38,7 +38,7 @@ Modespec* init__color(Modespec_el* context) {
 }
 
 void activate__color(Modespec* self) {
-  colorvars.globe_select = false;
+  colorvars.globe_select = 0;
 }
 
 void draw__color(Modespec* self) {

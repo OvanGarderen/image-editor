@@ -4,5 +4,3 @@
 char* strgrow(char* str, int grow);
 char* strappend(char* str, char* append);
 char* strclone(char* str);
-
-

@@ -17,7 +17,7 @@ void init_Inputbuffer(void){
 
 void start_Inputbuffer(Bufferspec spec) {
   input.spec = spec;
-  input.activated = true;
+  input.activated = 1;
   input.filled = 0;
   input.buffer[0] = '\0';
   update_UImess("%s : %s",input.spec.name,input.buffer);
@@ -40,7 +40,7 @@ void update_Inputbuffer(SDL_keysym k) {
 
 void send_Inputbuffer(void) {
   if(input.activated){
-    input.activated = false;
+    input.activated = 0;
     char* temp;
 
     temp = malloc(input.filled + strlen(input.spec.returncomm) + 2);
@@ -67,7 +67,7 @@ void send_Inputbuffer(void) {
 
 
 void break_Inputbuffer(void){
-  input.activated = false;
+  input.activated = 0;
 }
 
 char SDLK_getascii(SDL_keysym k){

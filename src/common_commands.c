@@ -55,17 +55,17 @@ int comm__set_UImess(int argnum, char** args) {
 }
 
 int comm__quit(int argnum, char** args) {
-  int nostash = false;
+  int nostash = 0;
 
   if(argnum > 1 && !strcmp(args[1],"nostash")) {
-    nostash = true;
+    nostash = 1;
   }
   
-  if(*global.saved == false && nostash == false) {
+  if(*global.saved == 0 && nostash == 0) {
     char buff[230] = ".stashed/";
     snprintf(buff,230,".stashed/~%s",global.filename);
     save_buffer(buff);
   }
-  global.active = false;
+  global.active = 0;
   return 0;
 }

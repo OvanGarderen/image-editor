@@ -2,8 +2,8 @@
 
 typedef struct brushvars Brushvars;
 struct brushvars {
-  bool suppres;
-  bool active;
+  int suppres;
+  int active;
   Color brush_col;
   Brush brush;
 };

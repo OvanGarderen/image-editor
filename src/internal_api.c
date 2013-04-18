@@ -247,8 +247,12 @@ int save_buffer(char* filename) {
   commit_Picture(&global.pic);
   int succes = SDL_SaveBMP(global.pic.primary,filename);
 
-  *global.saved = true;
-  set_filename(filename);
+  if(succes){
+    *global.saved = true;
+    set_filename(filename);
+  } else {
+    set_UImess("Could not save file %s",filename);
+  }
   return succes;
 }
 
@@ -260,6 +264,8 @@ int load_buffer(char* filename) {
     *global.saved = true;
     set_filename(filename);
     return 0;
+  } else {
+    set_UImess("Not found file %s",filename);
   }
   return -1;
 }

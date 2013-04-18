@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
-
 #include "colors.h"
 #include "point.h"
 #include "picture.h"
@@ -18,9 +16,9 @@ struct {
   SDL_Surface *screen;
   int screenw,screenh;
   Picture pic;
-  bool active;
-  bool mb_down;
-  bool suppres;
+  int active;
+  int mb_down;
+  int suppres;
   SDL_Event event;
   Brush* brush;
   Color* color;
