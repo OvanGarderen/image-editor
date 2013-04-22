@@ -34,6 +34,8 @@
 #include "drawing.h"
 #include "inputhandler.h"
 
+#include "dyn_loader.h"
+
 #include "logging.h"
 
 int init_global(void);
@@ -58,6 +60,7 @@ Modespec_el mode_array[] = {
   {"file" ,NULL,init__file},
   {"brush",NULL,init__brush},
   {"color",NULL,init__color},
+  {"select","libconfigs/select.cfg",init__dynamic},
 };
 
 /*

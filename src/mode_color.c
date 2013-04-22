@@ -32,7 +32,7 @@ Modespec* init__color(Modespec_el* context) {
     spec->call = call__color;
 
     logsub("color as global color");
-    register__global_color(&colorvars.ccur);
+    register__global_color(&global,&colorvars.ccur);
   }
   return spec;
 }

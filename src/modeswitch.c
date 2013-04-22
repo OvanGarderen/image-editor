@@ -55,6 +55,8 @@ Modespec* init__Modespec(Modespec_el* context) {
     memset(spec,0,sizeof(Modespec));
     /* name */
     spec->name = malloc(strlen(context->name));
+    spec->global = &global;
+    mode->vars = NULL;
     strcpy(spec->name,context->name);
   }
   return spec;

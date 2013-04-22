@@ -25,7 +25,7 @@ Modespec* init__brush(Modespec_el* context) {
     spec->mousehandler = mousehandler__brush;
     spec->keyhandler = keyhandler__brush;
     logsub("brush as global brush");
-    register__global_brush(&brushvars.brush);
+    register__global_brush(&global,&brushvars.brush);
   }
   return spec;
 }
@@ -55,7 +55,7 @@ int clickhandler__brush(Modespec* self, SDL_MouseButtonEvent* mbev) {
     brushvars.active = 1;
   } 
   else if( mbev->button == SDL_BUTTON_LEFT) {
-    commit_Picture(&global.pic);
+    commit_Picture(&global.pic,global.select);
     brushvars.active = 0;
   }
   return 0;

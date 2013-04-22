@@ -1,5 +1,6 @@
 #include <SDL/SDL.h>
 #include "picture.h"
+#include "selection.h"
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 #define  picture_rmask 0xff000000
@@ -42,8 +43,9 @@ void clean_drawingsurf(Picture* p){
                intColor_fmt(c_trans,p->drawing->format));
 }
 
-void commit_Picture(Picture* p){
+void commit_Picture(Picture* p, Selection* select){
   if(p) {
+    limit_Selection(p->drawing,select);
     SDL_BlitSurface(p->drawing,NULL,p->primary,NULL);
     p->updated = 0;
     clean_drawingsurf(p);

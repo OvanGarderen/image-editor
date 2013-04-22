@@ -1,4 +1,3 @@
-#define modelog(mode,fmt,args...) writelog(globallog,-1,"mode: %s :: " fmt,mode,##args)
 
 typedef struct brushvars Brushvars;
 struct brushvars {
@@ -9,6 +8,8 @@ struct brushvars {
 };
 
 #define brushvars_of(object) (ACC_VARS(object,Brushvars))
+
+/* METHODS */
 
 Modespec* init__brush(Modespec_el* context);
 void activate__brush(Modespec* self);

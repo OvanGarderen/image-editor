@@ -2,6 +2,7 @@
 
 #include <SDL/SDL.h>
 #include "colors.h"
+#include "selection.h"
 
 typedef struct {	
   SDL_Surface* primary;
@@ -24,6 +25,6 @@ typedef struct {
 int init_Picture(Picture* p, unsigned int w, unsigned int h);
 SDL_Surface* get_drawingsurf_Picture(Picture* p);
 void blit_Picture(SDL_Surface* dest, Picture* p);
-void commit_Picture(Picture* p);
+void commit_Picture(Picture* p, Selection* select);
 void clear_Picture(Picture* p,Color c);
 void destruct_Picture(Picture* p);

@@ -244,7 +244,7 @@ void update_color_from_mouse(Color* c,int sat,int alpha) {
 }
 
 int save_buffer(char* filename) {
-  commit_Picture(&global.pic);
+  commit_Picture(&global.pic,global.select);
   int succes = SDL_SaveBMP(global.pic.primary,filename);
 
   if(succes){
@@ -271,49 +271,57 @@ int load_buffer(char* filename) {
 }
 
 /* REGISTERING GLOBAL VARS */
-int register__global_brush(Brush* b) {
+int register__global_brush(Globalstruct* glob, Brush* b) {
   if(b) {
-    global.brush = b;
+    glob->brush = b;
     return 0;
   }
   return 1;
 }
 
-int register__global_color(Color* c) {
+int register__global_selection(Globalstruct* glob, Selection* select){
+  if(select){
+    glob->select = select;
+    return 0;
+  }
+  return 1;
+}
+
+int register__global_color(Globalstruct* glob, Color* c) {
   if(c) {
-    global.color = c;
+    glob->color = c;
     return 0;
   }
   return 1;
 }
 
-int register__global_filename(char* filename) {
+int register__global_filename(Globalstruct* glob, char* filename) {
   if(filename) {
-    global.filename = filename;
+    glob->filename = filename;
     return 0;
   }
   return 1;
 }
 
-int register__global_saved(int* saved) {
+int register__global_saved(Globalstruct* glob, int* saved) {
   if(saved) {
-    global.saved = saved;
+    glob->saved = saved;
     return 0;
   }
   return 1;
 }
 
-int register__global_UI2input(int* ui2input){
+int register__global_UI2input(Globalstruct* glob, int* ui2input){
   if(ui2input){
-    global.UI2input = ui2input;
+    glob->UI2input = ui2input;
     return 0;
   }
   return 1;
 }
 
 /* AND OTHER THINGS */
-int register__function(char* name, Funkyfunc f){
-  if(find_Funcdef(&global.funcs,name)) {
+int register__function(Globalstruct* glob, char* name, Funkyfunc f){
+  if(find_Funcdef(&glob->funcs,name)) {
     return -1;
   } 
   add_Funcdef(&global.funcs,name,f);

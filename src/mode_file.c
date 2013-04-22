@@ -17,12 +17,12 @@ Modespec* init__file(Modespec_el* context) {
 
     logsub("filename as global filename");
     logsub("saved boolean as global saved");
-    register__global_filename(filevars.filename);
-    register__global_saved(& filevars.saved);
+    register__global_filename(&global,filevars.filename);
+    register__global_saved(&global,&filevars.saved);
 
     logsub("functions");
-    register__function("save",comm__save);
-    register__function("load",comm__load);
+    register__function(&global,"save",comm__save);
+    register__function(&global,"load",comm__load);
   }
   return spec;
 }

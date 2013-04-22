@@ -12,7 +12,7 @@ struct inputbuffer {
 } input;
 
 void init_Inputbuffer(void){
-  register__global_UI2input(&input.activated);
+  register__global_UI2input(&global,&input.activated);
 }
 
 void start_Inputbuffer(Bufferspec spec) {

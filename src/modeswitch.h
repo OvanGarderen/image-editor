@@ -8,12 +8,15 @@ typedef struct modespec Modespec;
 typedef struct modelist Modelist;
 typedef struct modespec_el Modespec_el;
 
+#include "globalstruct.h"
+
 struct modelist {
   GHashTable *table;
 };
 
 struct modespec {
   char* name;
+  Globalstruct* global;
   void* vars;
   int (*call)(Modespec* self, int numargs, char** args);
   void (*draw)(Modespec* self);
@@ -32,7 +35,7 @@ struct modespec_el {
 };
 
 #define method_call(object,method,...) ((object)->method((object) , ##__VA_ARGS__))
-#define xsafe_method_call(object,method,...) if((object) && (object)->method){method_call(object,method ,##__VA_ARGS__);}
+#define xsafe_method_call(object,method,...) if((object) && (object)->method){method_call(object,method ,##__VA_ARGS__);}else if((object)){logerror("method call failed: object %s doesn't have %s",object->name,#method);}
 
 Modelist* create_Modelist(void);
 void add_Modespec(Modelist* ml, Modespec* spec);
@@ -43,3 +46,5 @@ void _destruct_Modespec(gpointer key, gpointer value, gpointer userdata);
 int fill_Modelist(Modelist* ml, Modespec_el* array, int num);
 Modespec* init__Modespec(Modespec_el* context);
 int call__Modespec(Modelist* ml, char* fullcomm);
+
+#define modelog(mode,fmt,args...) writelog(globallog,-1,"mode: %s :: " fmt,mode,##args)

@@ -8,37 +8,15 @@
 #include "funcdefs.h"
 #include "modeswitch.h"
 
+#include "selection.h"
+
 #include "logging.h"
 
 /* GLOBAL VARIABLES */
 
-struct {
-  SDL_Surface *screen;
-  int screenw,screenh;
-  Picture pic;
-  int active;
-  int mb_down;
-  int suppres;
-  SDL_Event event;
-  Brush* brush;
-  Color* color;
-  Point m;
-  Point mprev;
-  Point mc;
-  Modestack* modestack;
-  Modelist* modelist;
-  char* filename;
-  int* saved;
-  char UIstr[301];
-  char UImode[30];
-  char UImmode[10];
-  char UImess[200];
-  int* UI2input;
-  char inputbuffer[256];
-  Funclist funcs;
-  Colorlist colorlist;
-  LOG log;
-} global;
+#include "globalstruct.h"
+
+Globalstruct global;
 
 /*
  * SCREEN AND SDL
@@ -69,14 +47,15 @@ int save_buffer(char* filename);
 int load_buffer(char* filename);
 
 /* REGISTERING GLOBAL VARS */
-int register__global_brush(Brush* b);
-int register__global_color(Color* c);
-int register__global_filename(char* filename);
-int register__global_saved(int* saved);
-int register__global_UI2input(int* ui2input);
+int register__global_brush(Globalstruct* glob, Brush* b);
+int register__global_selection(Globalstruct* glob, Selection* select);
+int register__global_color(Globalstruct* glob, Color* c);
+int register__global_filename(Globalstruct* glob, char* filename);
+int register__global_saved(Globalstruct* glob, int* saved);
+int register__global_UI2input(Globalstruct* glob, int* ui2input);
 
 /* AND OTHER THINGS */
-int register__function(char* name, Funkyfunc f);
+int register__function(Globalstruct* glob, char* name, Funkyfunc f);
 
 /* MACROS */
 #define execute(A) call_Funcdef(&global.funcs,A)

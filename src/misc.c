@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "misc.h"
 
 char* strappend(char* str, char* append) {
