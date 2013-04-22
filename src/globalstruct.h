@@ -1,0 +1,39 @@
+#pragma once
+
+#include "brush.h"
+#include "picture.h"
+#include "colors.h"
+#include "modeswitch.h"
+#include "modestack.h"
+#include "funcdefs.h"
+#include "point.h"
+#include "logging.h"
+
+typedef struct {
+  SDL_Surface *screen;
+  int screenw,screenh;
+  Picture pic;
+  int active;
+  int mb_down;
+  int suppres;
+  SDL_Event event;
+  Brush* brush;
+  Color* color;
+  Point m;
+  Point mprev;
+  Point mc;
+  Modestack* modestack;
+  Modelist* modelist;
+  char* filename;
+  int* saved;
+  char UIstr[301];
+  char UImode[30];
+  char UImmode[10];
+  char UImess[200];
+  int* UI2input;
+  char inputbuffer[256];
+  Funclist funcs;
+  Colorlist colorlist;
+  Selection* select;
+  LOG log;
+} Globalstruct;
