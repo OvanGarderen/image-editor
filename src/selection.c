@@ -2,7 +2,7 @@
 #include "selection.h"
 
 SDL_Surface*
-limit_Selection(SDL_Surface* origin, Selection* select){
+limit_Selection(SDL_Surface* origin, Selection* select) {
   if(origin && select && select->active) {
     SDL_Rect left = {.x = 0, .y = 0,
                      .w = select->area.x, .h = origin->h};
@@ -20,8 +20,8 @@ limit_Selection(SDL_Surface* origin, Selection* select){
   return origin;
 }
 
-
-void draw_selection(SDL_Surface* where, Selection* select, Color c){
+void
+draw_selection(SDL_Surface* where, Selection* select, Color c){
   rectangleColor(where,select->area.x,select->area.y,
                  select->area.x + select->area.w,
                  select->area.y + select->area.h,intColor(c));

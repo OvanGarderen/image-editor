@@ -15,7 +15,7 @@ struct colorvars {
 #define modelog(mode,fmt,args...) writelog(globallog,-1,"mode: %s :: " fmt,mode,##args)
 
 Modespec* init__color(Modespec_el* context);
-void activate__color(Modespec* self);
+void activate__color(Modespec* self, char* arg);
 void draw__color(Modespec* self);
 int clickhandler__color(Modespec* self, SDL_MouseButtonEvent* mbev);
 int mousehandler__color(Modespec* self, SDL_MouseMotionEvent* motion);

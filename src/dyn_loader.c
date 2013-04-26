@@ -1,5 +1,6 @@
 #include <dlfcn.h>
 #include <libconfig.h>
+#include <pthread.h>
 #include <sys/stat.h>
 
 #include "misc.h"
@@ -10,39 +11,46 @@
 
 #include "dyn_loader.h"
 
-int dyn_stat_plugin(const char* libfile){ /* returns if library exists */
+int
+dyn_stat_plugin(const char* libfile) 
+{ /* returns if library exists */
   struct stat libstat;
   if(stat(libfile,&libstat) == -1)
     return 0;
   return 1;
 }
 
-int primer_fillfrom_config(config_t* cfg, Pluginprimer* primer){
+int
+primer_fillfrom_config(config_t* cfg, Pluginprimer* primer) 
+{
   int steady = 1;
   config_setting_t* funclist;
   config_setting_t* methodlist;
 
   steady &= config_lookup_string(cfg,"name",&primer->name);
   steady &= config_lookup_string(cfg,"file",&primer->libfile);
-  if(steady){    
+  if(steady) {
     methodlist = config_lookup(cfg,"methods");
-    for(primer->methodnum = 0; 
-	primer->methodnum<10 && (primer->methods[primer->methodnum] = (char*)
-				 config_setting_get_string_elem(methodlist,primer->methodnum)); 
-	primer->methodnum++);
+    for(primer->methodnum = 0;
+        primer->methodnum<10 && (primer->methods[primer->methodnum] = (char*)
+                                 config_setting_get_string_elem(methodlist,primer->methodnum));
+        primer->methodnum++);
     funclist = config_lookup(cfg,"functions");
-    for(primer->funcnum = 0; 
-	primer->funcnum<100 && (primer->funcs[primer->funcnum] = (char*)
-				config_setting_get_string_elem(funclist,primer->funcnum)); 
-	primer->funcnum++);
+    for(primer->funcnum = 0;
+        primer->funcnum<100 && (primer->funcs[primer->funcnum] = (char*)
+                                config_setting_get_string_elem(funclist,primer->funcnum));
+        primer->funcnum++);
   } else {
     logerror("config file doesn't provide plugin info");
   }
   return steady;
 }
 
-int dyn_add_funchook(void* plugin_handle, char* name){
+int
+dyn_add_funchook(void* plugin_handle, char* name) 
+{
   Funkyfunc fn = (Funkyfunc) dlsym(plugin_handle,name);
+
   if(fn) {
     logsub("added function %s",name);
     register__function(&global,name,fn);
@@ -53,21 +61,25 @@ int dyn_add_funchook(void* plugin_handle, char* name){
   return 1;
 }
 
-int method_inarray(int size, char** array, char* method){
+int
+method_inarray(int size, char** array, char* method) 
+{
   int i=0;
-  for(; i<size; i++){
+  for(; i<size; i++) {
     if(!strcmp(method,array[i]))
       return 1;
   }
   return 0;
 }
 
-void* dyn_add_method(void* plugin_handle,const char* object, const char* method){
+void*
+dyn_add_method(void* plugin_handle,const char* object, const char* method) 
+{
   char* funcname;
   void* method_handle;
   with(funcname,strappend(strappend(strclone((char*) method),"__"),(char*) object)) {
     method_handle = dlsym(plugin_handle,funcname);
-    if(method_handle){
+    if(method_handle) {
       lognote("added method %s (%p)",method,method_handle);
     } else {
       logwarning("could not find method %s",method);
@@ -76,7 +88,9 @@ void* dyn_add_method(void* plugin_handle,const char* object, const char* method)
   return method_handle;
 }
 
-int dyn_build_Modespec(void* plugin_handle, Pluginprimer* primer,Modespec* spec){
+int
+dyn_build_Modespec(void* plugin_handle, Pluginprimer* primer,Modespec* spec) 
+{
 #define cond_add_method(whichmethod) if(method_inarray(primer->methodnum,primer->methods,#whichmethod)) \
     spec->whichmethod = dyn_add_method(plugin_handle,primer->name, #whichmethod );
 
@@ -91,60 +105,99 @@ int dyn_build_Modespec(void* plugin_handle, Pluginprimer* primer,Modespec* spec)
   return 1;
 }
 
-int dyn_load_plugin(const char* cfgfilename, Modespec* mode){
+int
+dyn_load_plugin(const char* cfgfilename, Modespec* mode) 
+{
   int greatsucces = 1;
 
   FILE* cfgfile = fopen(cfgfilename,"r");
-  if(!cfgfile){
-    logerror("unable to open config file: %s",cfgfilename);
+  if(!cfgfile) {
+    //    logerror("unable to open config file: %s",cfgfilename);
     return -1;
   }
 
-  lognote("building from config file %s",cfgfilename);
+  //  lognote("building from config file %s",cfgfilename);
 
-  /* try reading plugin info from config file */
   Pluginprimer primer;
   config_t cfg;
   config_init(&cfg);
 
-  if(!config_read(&cfg,cfgfile)) {
-   logerror("failed parsing config file\n@%d\t%s\n\tabandoning plugin",
-	     config_error_line(&cfg),config_error_text(&cfg));
-   greatsucces = -1;
-  } 
-  
-  if(!primer_fillfrom_config(&cfg,&primer)) {
-    logerror("failed to find some definitions");
-    greatsucces = -1;
-  }
-  
-  void* plugin_handle = dlopen(primer.libfile,RTLD_NOW|RTLD_GLOBAL);
-  if(!plugin_handle) {
-    logerror("could not load shared library at %s\n\t%s",primer.libfile,dlerror());
-    greatsucces = -1;
-  }
-  
-  for(int i=0; i<primer.funcnum; i++)
-    dyn_add_funchook(plugin_handle,primer.funcs[i]);
-  
-  dyn_build_Modespec(plugin_handle,&primer,mode);
-  
-  void (*initvars)(Modespec* self) = dyn_add_method(plugin_handle,primer.name,"vars");
-  if(initvars) {
-    logsub("settling variables");
-    initvars(mode);
-  }
+  /* error prone process b/c of I/O
+     break from it during error
+  */
+  do{
+    /* try parsing file into config */
+    if(!config_read(&cfg,cfgfile)) {
+      //  logerror("failed parsing config file\n@%d\t%s\n\tabandoning plugin",
+      //         config_error_line(&cfg),config_error_text(&cfg));
+      greatsucces = -1;
+      break;
+    }
+
+    /* try gathering info from config */
+    if(!primer_fillfrom_config(&cfg,&primer)) {
+      //logerror("failed to find some definitions");
+      greatsucces = -1;
+      break;
+    }
+
+    /* try opening plugin shared object */
+    void* plugin_handle = dlopen(primer.libfile,RTLD_NOW|RTLD_GLOBAL);
+    if(!plugin_handle) {
+      //logerror("could not load shared library at %s\n\t%s",primer.libfile,dlerror());
+      greatsucces = -1;
+      break;
+    }
+
+    /* add functions */
+    for(int i=0; i<primer.funcnum; i++)
+      dyn_add_funchook(plugin_handle,primer.funcs[i]);
+
+    /* build mode */
+    dyn_build_Modespec(plugin_handle,&primer,mode);
+
+    /* initialise variables of mode */
+    void (*initvars)(Modespec* self) = dyn_add_method(plugin_handle,primer.name,"vars");
+    if(initvars) {
+      //logsub("settling variables");
+      initvars(mode);
+    }
+  } while(0);
 
   config_destroy(&cfg);
   return greatsucces;
 }
 
-Modespec* init__dynamic(Modespec_el* context){
+void* 
+dyn_dispatch_loader(void* in) 
+{
+  Dyn_load_info* info = (Dyn_load_info*) in;
+
+  dyn_load_plugin(info->config,info->mode);
+
+  modelog(info->mode->name,"finished loading");
+  free(info);
+
+  pthread_exit(NULL);
+}
+
+Modespec*
+init__dynamic(Modespec_el* context) 
+{
+  modelog(context->name,"dynamically building");
   if(context->aux) {
     Modespec* spec = init__Modespec(context);
-    modelog(context->name,"dynamically building");
-    dyn_load_plugin(context->aux,spec);
+
+    Dyn_load_info* info = malloc(sizeof(Dyn_load_info));
+    info->config = context->aux;
+    info->mode = spec;
+
+    pthread_t* thread = malloc(sizeof(pthread_t));
+    spec->loading = thread;
+    pthread_create(thread,NULL,dyn_dispatch_loader,info);
+
     return spec;
   }
   return NULL;
 }
+

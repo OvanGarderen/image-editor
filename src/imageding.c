@@ -37,6 +37,7 @@
 #include "dyn_loader.h"
 
 #include "logging.h"
+#include "misc.h"
 
 int init_global(void);
 void process_input(SDL_Event e, int handled);
@@ -60,7 +61,7 @@ Modespec_el mode_array[] = {
   {"file" ,NULL,init__file},
   {"brush",NULL,init__brush},
   {"color",NULL,init__color},
-  {"select","libconfigs/select.cfg",init__dynamic},
+  {"select","configs/select.cfg",init__dynamic},
 };
 
 /*
@@ -83,7 +84,6 @@ int main(int argc, char** argv) {
   loggeneral("reading user input");
   handle_arguments(argc,argv);
 
-
   loggeneral("starting main loop");
   while(global.active) {
     int handled = false;
@@ -92,32 +92,33 @@ int main(int argc, char** argv) {
     if(SDL_PollEvent(&global.event)) {
       switch(global.event.type) {
       case SDL_VIDEORESIZE:
-        resize_window(global.event.resize.w,
+        resize_window(&global, global.event.resize.w,
                       global.event.resize.h); break;
       case SDL_MOUSEBUTTONDOWN:
       case SDL_MOUSEBUTTONUP:
         xsafe_method_call(mode_cur,clickhandler,&global.event.button);
 
-	/* update mouse */
+        /* update mouse */
         global.mb_down = global.event.button.state;
         global.mc.x = global.event.button.x;
         global.mc.y = global.event.button.y;
-	global.m = global.mc;
+        global.m = global.mc;
+        global.mprev = global.m;
         break;
       case SDL_MOUSEMOTION:
         xsafe_method_call(mode_cur,mousehandler,&global.event.motion);
 
         /* update mouse movement */
-	global.mprev = global.m;
+        global.mprev = global.m;
         global.m.x = global.event.motion.x;
         global.m.y = global.event.motion.y;
         break;
       case SDL_KEYDOWN:
       case SDL_KEYUP:
-	/* if keybinding isn't escaped try to acces keybinds of current mode */
-	if(!(global.event.key.keysym.mod & KMOD_CTRL) && mode_cur && mode_cur->keyhandler) {
-	      handled = method_call(mode_cur,keyhandler,&global.event.key);
-	}
+        /* if keybinding isn't escaped try to acces keybinds of current mode */
+        if(!(global.event.key.keysym.mod & (KMOD_CTRL|KMOD_ALT) ) && mode_cur && mode_cur->keyhandler) {
+          handled = method_call(mode_cur,keyhandler,&global.event.key);
+        }
         process_input(global.event,handled);
         break;
       case SDL_QUIT:
@@ -145,7 +146,7 @@ int init_global(void) {
   global.screenh = 1000;
   logsub("size is %d x%d",global.screenw,global.screenh);
   global.screen = init_videomode(global.screenw,global.screenh);
-  clear_window(c_ltgray);
+  clear_window(&global, c_ltgray);
 
   lognote("constructing list of modes");
   global.modelist = create_Modelist();
@@ -159,7 +160,7 @@ int init_global(void) {
   init_Inputbuffer();
 
   lognote("setting various booleans");
-  global.active = true; 
+  global.active = true;
   global.mb_down= false;
   global.suppres= false;
 
@@ -173,9 +174,9 @@ int init_global(void) {
   fill_Funclist(&global.funcs,command_array,arraylen(command_array));
 
   lognote("starting UI");
-  set_UImode("brush");
-  set_UImmode("");
-  set_random_UImess();
+  set_UImode(&global,"brush","");
+  set_UImmode(&global,"");
+  set_random_UImess(&global);
 
   redraw_screen();
   return 0;
@@ -184,7 +185,7 @@ int init_global(void) {
 int handle_arguments(int argc,char** argv){
   if(argc>1){
     lognote("got argument, loading file %s",argv[1]);
-    int succes = load_buffer(argv[1]);
+    int succes = load_buffer(&global,argv[1]);
     if(succes < 0)
       logerror("failed to load file");
     return succes;
@@ -211,18 +212,20 @@ void redraw_screen(void) {
   if(global.pic.updated)
     *global.saved = false;
 
-  clear_window(c_ltgray);
+  clear_window(&global,c_ltgray);
   blit_Picture(global.screen,&global.pic);
 
   Modespec* mode_cur = get_Modespec(global.modelist,global.UImode);
   xsafe_method_call(mode_cur,draw);
 
+  cbqueue_draw(&global.drawqueue);
+  
   /* test of the spline function */
   draw_test(global.screen,global.m);
 
   /* draw little UI box */
   boxColor(global.screen,0,global.screenh - 16,global.screenw,global.screenh,intColor(c_dkgray));
-  update_UIstr();
+  update_UIstr(&global);
   stringColor(global.screen,3,global.screenh - 12,global.UIstr,intColor(c_white));
 
   SDL_Flip(global.screen);
@@ -233,61 +236,41 @@ void process_input(SDL_Event e, int handled) {
   if( e.key.state == SDL_PRESSED && !handled ) {
     if( e.key.keysym.sym == SDLK_ESCAPE ) {
       break_Inputbuffer();
-      set_UImess("");
-      pull_cur_mode();
+      set_UImess(&global,"","");
+      pull_cur_mode(&global);
     }
     else if( e.key.keysym.sym == SDLK_RETURN && *global.UI2input) {
       send_Inputbuffer();
-      /*
-      if(!strcmp(global.UImode,"save")) {
-        int succes = save_buffer(global.inputbuffer);
-        pull_cur_mode();
-        if(succes == -1)
-          set_UImess("There was a problem saving the buffer.");
-        else
-          set_UImess("Buffer saved.");
-      }
-      else if(!strcmp(global.UImode,"load")) {
-        int succes = load_buffer(global.inputbuffer);
-        pull_cur_mode();
-        if(succes == -1)
-          set_UImess("There was a problem loading the buffer.");
-        else
-          set_UImess("Buffer loaded from %s.",global.inputbuffer);
-      }
-      else if(!strcmp(global.UImode,"comm")) {
-
-      }
-      */
     }
     else if( *global.UI2input ) {
       update_Inputbuffer(e.key.keysym);
     }
+    else if(e.key.keysym.sym == SDLK_m) {
+      push_cur_mode(&global);
+      set_UImode(&global,"select","");
+    }
     else if(e.key.keysym.sym == SDLK_x) {
-      push_cur_mode();
-      set_UImode("comm");
+      push_cur_mode(&global);
+      set_UImode(&global,"comm","");
       Bufferspec spec = (Bufferspec) {CBtype_command,"exec","",NULL};
       start_Inputbuffer(spec);
     }
     else if(e.key.keysym.sym == SDLK_h) {
-      push_cur_mode();
-      set_UImode("color");
+      push_cur_mode(&global);
+      set_UImode(&global,"color","");
     }
     else if(e.key.keysym.sym == SDLK_b) {
-      push_cur_mode();
-      set_UImode("brush");
+      push_cur_mode(&global);
+      set_UImode(&global,"brush","");
     }
     else if(e.key.keysym.sym == SDLK_s) {
-      push_cur_mode();
-      set_UImode("save");
-      set_UImmode("bmp");
-      Bufferspec spec = (Bufferspec) {CBtype_command,"saving to","save",NULL};
-      start_Inputbuffer(spec);
+      push_cur_mode(&global);
+      set_UImode(&global,"file","save");
     }
     else if(e.key.keysym.sym == SDLK_l) {
-      push_cur_mode();
-      set_UImode("load");
-      set_UImmode("");
+      push_cur_mode(&global);
+      set_UImode(&global,"file","load");
+      set_UImmode(&global,"");
       Bufferspec spec = (Bufferspec) {CBtype_command,"loading","load",NULL};
       start_Inputbuffer(spec);
     }

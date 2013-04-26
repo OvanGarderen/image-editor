@@ -4,7 +4,7 @@ CFLAGS := -c -Wall -Wno-variadic-macros -Wno-unused-parameter -Werror=implicit -
 INCLUDE := $(shell pkg-config --cflags glib-2.0) \
 	$(shell sdl-config --cflags) \
 	$(shell pkg-config --cflags libconfig) -I./src/ 
-LDFLAGS := $(shell sdl-config --libs) -lSDL_image -lSDL_gfx \
+LDFLAGS := $(shell sdl-config --libs) -lSDL_image -lSDL_gfx -pthread \
 	$(shell pkg-config --libs glib-2.0) \
 	$(shell pkg-config --libs libconfig)
 
@@ -26,14 +26,8 @@ $(EXECUTABLE): $(OBJECTS)
 
 libs: libs/libapi.so $(SHAREDOBJS)
 
-objects/libobjs/selection.o: src/selection.c
-	$(CC) $(CFLAGS) $(DBG) -fPIC $(INCLUDE) $< -o $@ $(LDFLAGS)
-
-objects/libobjs/modeswitch.o: src/modeswitch.c
-	$(CC) $(CFLAGS) $(DBG) -fPIC $(INCLUDE) $< -o $@ $(LDFLAGS)
-
-objects/libobjs/internal_api.o: src/internal_api.c
-	$(CC) $(CFLAGS) $(DBG) -fPIC $(INCLUDE) $< -o $@ $(LDFLAGS)
+objects/dyn_loader.o: src/dyn_loader.c
+	$(CC) $(CFLAGS) $(DBG) $(INCLUDE) $< -o $@ $(LDFLAGS) -pthread
 
 objects/api/%.o: src/%.c
 	$(CC) $(CFLAGS) $(DBG) -fPIC $(INCLUDE) $< -o $@ $(LDFLAGS)

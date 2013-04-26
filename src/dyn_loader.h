@@ -1,5 +1,6 @@
 typedef struct plugincontainer Plugincontainer;
 typedef struct pluginprimer Pluginprimer;
+typedef struct dyn_load_info Dyn_load_info;
 
 struct pluginprimer {
   const char* name;
@@ -10,6 +11,11 @@ struct pluginprimer {
 
   int funcnum;
   char* funcs[100]; /* what functions to load*/
+};
+
+struct dyn_load_info {
+  const char* config;
+  Modespec* mode;
 };
 
 Modespec* init__dynamic(Modespec_el* self);

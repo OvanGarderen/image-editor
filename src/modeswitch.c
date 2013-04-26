@@ -1,9 +1,12 @@
+
 #include <stdlib.h>
 #include <glib.h>
+#include <pthread.h>
 
 #include "logging.h"
 #include "modeswitch.h"
 #include "funcdefs.h"
+#include "internal_api.h"
 
 Modelist* create_Modelist(void) {
   Modelist* list = malloc(sizeof(Modelist));
@@ -16,7 +19,12 @@ void add_Modespec(Modelist* ml, Modespec* spec) {
 }
 
 Modespec* get_Modespec(Modelist* ml, char* name) {
-  return g_hash_table_lookup(ml->table,name);
+  Modespec* spec = g_hash_table_lookup(ml->table,name);
+  if(spec && spec->loading){
+      pthread_join(*spec->loading,NULL);
+      spec->loading = NULL;
+  }
+  return spec;
 }
 
 void clean_Modelist(Modelist* ml) {
@@ -56,7 +64,7 @@ Modespec* init__Modespec(Modespec_el* context) {
     /* name */
     spec->name = malloc(strlen(context->name));
     spec->global = &global;
-    mode->vars = NULL;
+    spec->vars = NULL;
     strcpy(spec->name,context->name);
   }
   return spec;

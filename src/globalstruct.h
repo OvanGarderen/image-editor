@@ -8,6 +8,7 @@
 #include "funcdefs.h"
 #include "point.h"
 #include "logging.h"
+#include "cbqueue.h"
 
 typedef struct {
   SDL_Surface *screen;
@@ -35,5 +36,6 @@ typedef struct {
   Funclist funcs;
   Colorlist colorlist;
   Selection* select;
+  Cbqueue drawqueue;
   LOG log;
 } Globalstruct;

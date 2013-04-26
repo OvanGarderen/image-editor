@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <SDL.h>
 #include <glib.h>
+#include <pthread.h>
 
 typedef struct modespec Modespec;
 typedef struct modelist Modelist;
@@ -16,11 +17,12 @@ struct modelist {
 
 struct modespec {
   char* name;
-  Globalstruct* global;
   void* vars;
+  Globalstruct* global;
+  pthread_t* loading;
   int (*call)(Modespec* self, int numargs, char** args);
   void (*draw)(Modespec* self);
-  void (*activate)(Modespec* self);
+  void (*activate)(Modespec* self, char* arg);
   int (*keyhandler)(Modespec* self, SDL_KeyboardEvent* key);
   int (*mousehandler)(Modespec* self, SDL_MouseMotionEvent* motion);
   int (*clickhandler)(Modespec* self, SDL_MouseButtonEvent* button);
@@ -35,7 +37,7 @@ struct modespec_el {
 };
 
 #define method_call(object,method,...) ((object)->method((object) , ##__VA_ARGS__))
-#define xsafe_method_call(object,method,...) if((object) && (object)->method){method_call(object,method ,##__VA_ARGS__);}else if((object)){logerror("method call failed: object %s doesn't have %s",object->name,#method);}
+#define xsafe_method_call(object,method,...) if((object) && (object)->method){method_call(object,method ,##__VA_ARGS__);}
 
 Modelist* create_Modelist(void);
 void add_Modespec(Modelist* ml, Modespec* spec);

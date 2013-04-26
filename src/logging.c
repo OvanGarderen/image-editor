@@ -42,6 +42,8 @@ void writelog(LOG log,int type,const char* fmt,...){
     fprintf(log,"\t"); break;
   }
   vfprintf(log,fmt,ap);
+  if(type == logtype_error)
+    vfprintf(stderr,fmt,ap);
   if(type == logtype_global)
       fprintf(log," --");
   fprintf(log,"\n");

@@ -12,7 +12,7 @@ struct brushvars {
 /* METHODS */
 
 Modespec* init__brush(Modespec_el* context);
-void activate__brush(Modespec* self);
+void activate__brush(Modespec* self, char* arg);
 void draw__brush(Modespec* self);
 int clickhandler__brush(Modespec* self, SDL_MouseButtonEvent* mbev);
 int mousehandler__brush(Modespec* self, SDL_MouseMotionEvent* motion);

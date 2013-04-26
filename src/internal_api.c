@@ -46,174 +46,123 @@ void print_SurfaceFormat(SDL_Surface* surf) {
   printf("alpha:\t %d\n",fmt->alpha);
 }
 
-void resize_window(int w, int h) {
+void resize_window(Globalstruct* glob, int w, int h) {
   SDL_Surface* new = SDL_SetVideoMode(w,h,32,SDL_SWSURFACE | SDL_RESIZABLE);
-  SDL_FreeSurface(global.screen);
+  SDL_FreeSurface(glob->screen);
 
   /* set several environment variables */
-  global.screen = new;
-  global.screenw= w;
-  global.screenh= h;
-  clear_window(c_white);
+  glob->screen = new;
+  glob->screenw= w;
+  glob->screenh= h;
+  clear_window(glob,c_white);
 }
 
-void clear_window(Color c) {
-  SDL_FillRect(global.screen,NULL,
-               intColor_fmt(c,global.screen->format));
+void clear_window(Globalstruct* glob, Color c) {
+  SDL_FillRect(glob->screen,NULL,
+               intColor_fmt(c,glob->screen->format));
 }
 
 /*
  * IO
  */
 
-int execute_text(char* text){
+int execute_text(Globalstruct* glob, char* text) {
   if(!text)
     return -1;
   lognote("executing ``%s''",text);
-  int succes = execute(text);
+  int succes = execute(glob,text);
   
-  if(succes == -404){
+  if(succes == -404) {
     logsub("passing to mode",text);  
-    succes = call__Modespec(global.modelist,text);
+    succes = call__Modespec(glob->modelist,text);
   } 
   if(succes == -404) {
     logsub("passing to previously called mode",text);  
-    pull_cur_mode();
-    char* temp = malloc(strlen(global.UImode) + strlen(text) + 2);
-    sprintf(temp,"%s %s",global.UImode,text);
-    succes = call__Modespec(global.modelist,temp);
+    pull_cur_mode(glob);
+    char* temp = malloc(strlen(glob->UImode) + strlen(text) + 2);
+    sprintf(temp,"%s %s",glob->UImode,text);
+    succes = call__Modespec(glob->modelist,temp);
     free(temp);
-    push_cur_mode();
+    push_cur_mode(glob);
   }
   if(succes == -404)
-    set_UImess("Unknown command.");
+    set_UImess(glob,"Unknown command.");
   else if(succes < -1)
-    set_UImess("...");
-  pull_cur_mode();
+    set_UImess(glob,"...");
+  pull_cur_mode(glob);
   return succes;
-}
-
-void update_inputbuffer(SDL_keysym k, char* message) {
-  if(strlen(global.inputbuffer) < 255) {
-    /* implement backspace */
-    if(k.sym == SDLK_BACKSPACE) {
-      if(strlen(global.inputbuffer))
-        global.inputbuffer[strlen(global.inputbuffer)-1] = 0;
-    }
-    /* implement caps*/
-    else if((k.mod & KMOD_SHIFT)
-            && k.sym >= SDLK_a && k.sym <= SDLK_z)
-      global.inputbuffer[strlen(global.inputbuffer)] = k.sym - SDLK_a + 1 + SDLK_AT;
-    /* implement other modifiers */
-    else if((k.mod & KMOD_SHIFT)) {
-      char other = 0;
-      switch(k.sym) {
-      case SDLK_1:            other = SDLK_EXCLAIM; break;
-      case SDLK_2:            other = SDLK_AT; break;
-      case SDLK_3:            other = SDLK_HASH; break;
-      case SDLK_4:            other = SDLK_DOLLAR; break;
-      case SDLK_6:            other = SDLK_CARET; break;
-      case SDLK_7:            other = SDLK_AMPERSAND; break;
-      case SDLK_8:            other = SDLK_ASTERISK; break;
-      case SDLK_9:            other = SDLK_LEFTPAREN; break;
-      case SDLK_0:            other = SDLK_RIGHTPAREN; break;
-      case SDLK_QUOTE:        other = SDLK_QUOTEDBL; break;
-      case SDLK_SEMICOLON:    other = SDLK_COLON; break;
-      case SDLK_COMMA:        other = SDLK_LESS; break;
-      case SDLK_PERIOD:       other = SDLK_GREATER; break;
-      case SDLK_SLASH:        other = SDLK_QUESTION; break;
-      case SDLK_LEFTBRACKET:  other = '{'; break;
-      case SDLK_RIGHTBRACKET: other = '}'; break;
-      case SDLK_BACKSLASH:    other = '|'; break;
-      case SDLK_5:            other = '%'; break;
-      case SDLK_BACKQUOTE:    other = '~'; break;
-      default: break;
-      }
-      if(other)
-        global.inputbuffer[strlen(global.inputbuffer)] = other;
-    }
-    /* normal keys */
-    else if(k.sym >= SDLK_SPACE && k.sym <= SDLK_z)
-      global.inputbuffer[strlen(global.inputbuffer)] = k.sym;
-  }
-
-  if(message) {
-    set_UImess("%s : %s",message,global.inputbuffer);
-  } else {
-    set_UImess("%s",global.inputbuffer);
-  }
 }
 
 /* 
  * UI interaction 
  */
 
-void update_UIstr() {
-    snprintf(global.UIstr,300,"%s> [%s] :: %s :: %s%c",
-	     global.UImode,global.UImmode,global.UImess,global.filename,
-	     (*global.saved ? ' ' : '*') );
+void update_UIstr(Globalstruct* glob) {
+    snprintf(glob->UIstr,300,"%s> [%s] :: %s :: %s%c",
+	     glob->UImode,glob->UImmode,glob->UImess,glob->filename,
+	     (*glob->saved ? ' ' : '*') );
 }
 
-int set_UImess(const char* mess, ...) {
+int set_UImess(Globalstruct* glob, const char* mess, ...) {
   va_list ap;
   int n;
   va_start(ap,mess);
-  n = vsnprintf(global.UImess,200,mess,ap);
+  n = vsnprintf(glob->UImess,200,mess,ap);
   va_end(ap);
-  writelog(globallog,-1,"~ %s",global.UImess);
+  writelog(globallog,-1,"~ %s",glob->UImess);
   return n;
 }
 
-int update_UImess(const char* mess, ...){
+int update_UImess(Globalstruct* glob, const char* mess, ...) {
   va_list ap;
   int n;
   va_start(ap,mess);
-  n = vsnprintf(global.UImess,200,mess,ap);
+  n = vsnprintf(glob->UImess,200,mess,ap);
   va_end(ap);
   return n;
 }
 
-int set_UImode(char* mode) {
-  strncpy(global.UImode,mode,30);
-  Modespec* mode_cur = get_Modespec(global.modelist,mode);
-  xsafe_method_call(mode_cur,activate);
+int set_UImode(Globalstruct* glob, char* mode, char* arg) {
+  strncpy(glob->UImode,mode,30);
+  Modespec* mode_cur = get_Modespec(glob->modelist,mode);
+  xsafe_method_call(mode_cur,activate,arg);
   return 0;
 }
 
-int set_filename(char* fn) {
-  strncpy(global.filename,fn,200);
+int set_filename(Globalstruct* glob, char* fn) {
+  strncpy(glob->filename,fn,200);
   return 0;
 }
 
-int set_UImmode(char* mmode) {
-  strncpy(global.UImmode,mmode,10);
+int set_UImmode(Globalstruct* glob, char* mmode) {
+  strncpy(glob->UImmode,mmode,10);
   return 0;
 }
 
-Modestack* push_cur_mode() {
-  global.modestack = push_Modestack(global.modestack,global.UImode,global.UImmode);
-  return global.modestack;
+Modestack* push_cur_mode(Globalstruct* glob) {
+  glob->modestack = push_Modestack(glob->modestack,glob->UImode,glob->UImmode);
+  return glob->modestack;
 }
 
-Modestack* pull_cur_mode() {
-  if(global.modestack) {
-    set_UImode(global.modestack->mode);
-    set_UImmode(global.modestack->mmode);
+Modestack* pull_cur_mode(Globalstruct* glob) {
+  if(glob->modestack) {
+    set_UImode(glob,glob->modestack->mode,"");
+    set_UImmode(glob,glob->modestack->mmode);
   }
-  return global.modestack = pop_Modestack(global.modestack);
+  return glob->modestack = pop_Modestack(glob->modestack);
 }
 
-void set_random_UImess(void) {
+void set_random_UImess(Globalstruct* glob) {
 #define RANDOM_MESSAGES 4
   switch(rand() % RANDOM_MESSAGES) {
   case 0:
-    set_UImess("This isn't even my final form!"); break;
+    set_UImess(glob,"This isn't even my final form!"); break;
   case 1:
-    set_UImess(">2012 >still using photoshop ISHYGDDT"); break;
+    set_UImess(glob,">2012 >still using photoshop ISHYGDDT"); break;
   case 2:
-    set_UImess("Please refrain from making sudden mouse movements; it may upset the tigers."); break;
+    set_UImess(glob,"Please refrain from making sudden mouse movements; it may upset the tigers."); break;
   case 3:
-    set_UImess("...now available in white."); break;
+    set_UImess(glob,"...now available in white."); break;
   }
 }
 
@@ -237,35 +186,35 @@ char* modname(char* name,char identifier) {
   return NULL;
 }
 
-void update_color_from_mouse(Color* c,int sat,int alpha) {
-  int norm = fmin(255.0, 3*norm_Point(add_Point( global.mc, min_Point(global.m))));
-  int arg = (127.0/M_PI) *(M_PI + arg_Point(add_Point( global.mc, min_Point(global.m))));
+void update_color_from_mouse(Globalstruct* glob, Color* c,int sat,int alpha) {
+  int norm = fmin(255.0, 3*norm_Point(add_Point( glob->mc, min_Point(glob->m))));
+  int arg = (127.0/M_PI) *(M_PI + arg_Point(add_Point( glob->mc, min_Point(glob->m))));
   *c = hsv2Color(arg,sat,norm,alpha);
 }
 
-int save_buffer(char* filename) {
-  commit_Picture(&global.pic,global.select);
-  int succes = SDL_SaveBMP(global.pic.primary,filename);
+int save_buffer(Globalstruct* glob, char* filename) {
+  commit_Picture(&glob->pic,glob->select);
+  int succes = SDL_SaveBMP(glob->pic.primary,filename);
 
-  if(succes){
-    *global.saved = true;
-    set_filename(filename);
+  if(succes) {
+    *glob->saved = true;
+    set_filename(glob,filename);
   } else {
-    set_UImess("Could not save file %s",filename);
+    set_UImess(glob,"Could not save file %s",filename);
   }
   return succes;
 }
 
-int load_buffer(char* filename) {
+int load_buffer(Globalstruct* glob, char* filename) {
   SDL_Surface* img = IMG_Load(filename);
   if(img) {
-    SDL_BlitSurface(img,NULL,global.pic.primary,NULL);
+    SDL_BlitSurface(img,NULL,glob->pic.primary,NULL);
     SDL_FreeSurface(img);
-    *global.saved = true;
-    set_filename(filename);
+    *glob->saved = true;
+    set_filename(glob,filename);
     return 0;
   } else {
-    set_UImess("Not found file %s",filename);
+    set_UImess(glob,"Not found file %s",filename);
   }
   return -1;
 }
@@ -279,8 +228,8 @@ int register__global_brush(Globalstruct* glob, Brush* b) {
   return 1;
 }
 
-int register__global_selection(Globalstruct* glob, Selection* select){
-  if(select){
+int register__global_selection(Globalstruct* glob, Selection* select) {
+  if(select) {
     glob->select = select;
     return 0;
   }
@@ -311,19 +260,31 @@ int register__global_saved(Globalstruct* glob, int* saved) {
   return 1;
 }
 
-int register__global_UI2input(Globalstruct* glob, int* ui2input){
-  if(ui2input){
+int register__global_UI2input(Globalstruct* glob, int* ui2input) {
+  if(ui2input) {
     glob->UI2input = ui2input;
     return 0;
   }
   return 1;
 }
 
+/* REGISTER METHODS AS GLOBAL */
+int register__draw(Globalstruct* glob, void (*draw)(Modespec*), Modespec* origin) {
+  printf("%p == %p, %s\n",draw,origin->draw,origin->name);
+  cbqueue_add(&(glob->drawqueue),draw, origin);
+  return 0;
+}
+
 /* AND OTHER THINGS */
-int register__function(Globalstruct* glob, char* name, Funkyfunc f){
+int register__function(Globalstruct* glob, char* name, Funkyfunc f) {
   if(find_Funcdef(&glob->funcs,name)) {
     return -1;
   } 
-  add_Funcdef(&global.funcs,name,f);
+  add_Funcdef(&glob->funcs,name,f);
   return 0;
+}
+
+/* misc */
+int execute(Globalstruct* glob, char* command) {
+  return call_Funcdef(&glob->funcs,command);
 }

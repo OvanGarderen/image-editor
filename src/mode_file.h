@@ -16,8 +16,11 @@ struct filevars {
 /* METHODS */
 
 Modespec* init__file(Modespec_el* context);
-void activate__file(Modespec* self);
+void activate__file(Modespec* self, char* arg);
 int call__file(Modespec* self, int argnum, char** args);
+
+void call__file_save(int argnum, char** args);
+void call__file_load(int argnum, char** args);
 
 /* FUNCTIONS */
 

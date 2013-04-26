@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "misc.h"
 
 char* strappend(char* str, char* append) {

@@ -20,7 +20,7 @@ void start_Inputbuffer(Bufferspec spec) {
   input.activated = 1;
   input.filled = 0;
   input.buffer[0] = '\0';
-  update_UImess("%s : %s",input.spec.name,input.buffer);
+  update_UImess(&global,"%s : %s",input.spec.name,input.buffer);
 }
 
 void update_Inputbuffer(SDL_keysym k) {
@@ -35,28 +35,28 @@ void update_Inputbuffer(SDL_keysym k) {
       input.buffer[input.filled] = '\0';
     }
   }
-  update_UImess("%s : %s",input.spec.name,input.buffer);
+  update_UImess(&global,"%s : %s",input.spec.name,input.buffer);
 }
 
 void send_Inputbuffer(void) {
-  if(input.activated){
+  if(input.activated) {
     input.activated = 0;
     char* temp;
 
     temp = malloc(input.filled + strlen(input.spec.returncomm) + 2);
     sprintf(temp,"%s %s",input.spec.returncomm,input.buffer);
     
-    set_UImess("sending... %s",temp);
+    set_UImess(&global,"sending... %s",temp);
 
     switch(input.spec.callbacktype) {
     case CBtype_command:
-      execute_text(temp);
+      execute_text(&global,temp);
       break;
     case CBtype_funcp:
       if(input.spec.callback) {
 	input.spec.callback(temp);
       } else {
-	set_UImess("Error.");
+	set_UImess(&global,"Error.");
       }
       break;
     }

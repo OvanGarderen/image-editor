@@ -30,7 +30,7 @@ Modespec* init__brush(Modespec_el* context) {
   return spec;
 }
 
-void activate__brush(Modespec* self) {
+void activate__brush(Modespec* self, char* arg) {
   brushvars.suppres = 0;
   brushvars.active = 0;
   brushvars.brush_col = *global.color;
@@ -67,7 +67,7 @@ int mousehandler__brush(Modespec* self, SDL_MouseMotionEvent* motion) {
     Point to = {motion->x,
 		motion->y};
 
-    Point mid = subs_Point(mult_Point(2.0,global.m),global.mprev);
+    //    Point mid = subs_Point(mult_Point(2.0,global.m),global.mprev);
 
     /*    stroke_brush_smooth(&global.pic,
 			& brushvars.brush,
@@ -90,11 +90,11 @@ int keyhandler__brush(Modespec* self, SDL_KeyboardEvent* key) {
       break;
     case SDLK_a:
       brush_change_size(& (brushvars.brush),1); 
-      set_UImess("changed brush size to %d", brushvars.brush.size);
+      set_UImess(&global,"changed brush size to %d", brushvars.brush.size);
       break;
     case SDLK_z:
       brush_change_size(& (brushvars.brush),-1); 
-      set_UImess("changed brush size to %d", brushvars.brush.size);
+      set_UImess(&global,"changed brush size to %d", brushvars.brush.size);
       break;
     default:
       return 0;

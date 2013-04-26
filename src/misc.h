@@ -1,5 +1,6 @@
 #define stralloc(stringinit) malloc(strlen(stringinit))
 #define with(var, init) for(var = init; var; var = realloc(var,0) )
+#define arraylen(A) (sizeof(A)/sizeof(A[0]))
 
 char* strgrow(char* str, int grow);
 char* strappend(char* str, char* append);
