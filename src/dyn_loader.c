@@ -31,15 +31,20 @@ primer_fillfrom_config(config_t* cfg, Pluginprimer* primer)
   steady &= config_lookup_string(cfg,"file",&primer->libfile);
   if(steady) {
     methodlist = config_lookup(cfg,"methods");
-    for(primer->methodnum = 0;
-        primer->methodnum<10 && (primer->methods[primer->methodnum] = (char*)
-                                 config_setting_get_string_elem(methodlist,primer->methodnum));
-        primer->methodnum++);
+    if(methodlist) {
+      for(primer->methodnum = 0;
+	  primer->methodnum<10 && (primer->methods[primer->methodnum] = (char*)
+				   config_setting_get_string_elem(methodlist,primer->methodnum));
+	  primer->methodnum++);
+    }
+
     funclist = config_lookup(cfg,"functions");
-    for(primer->funcnum = 0;
-        primer->funcnum<100 && (primer->funcs[primer->funcnum] = (char*)
-                                config_setting_get_string_elem(funclist,primer->funcnum));
-        primer->funcnum++);
+    if(funclist) {
+      for(primer->funcnum = 0;
+	  primer->funcnum<100 && (primer->funcs[primer->funcnum] = (char*)
+				  config_setting_get_string_elem(funclist,primer->funcnum));
+	  primer->funcnum++);
+    }
   } else {
     logerror("config file doesn't provide plugin info");
   }
@@ -112,11 +117,11 @@ dyn_load_plugin(const char* cfgfilename, Modespec* mode)
 
   FILE* cfgfile = fopen(cfgfilename,"r");
   if(!cfgfile) {
-    //    logerror("unable to open config file: %s",cfgfilename);
+    logerror("unable to open config file: %s",cfgfilename);
     return -1;
   }
 
-  //  lognote("building from config file %s",cfgfilename);
+  lognote("building from config file %s",cfgfilename);
 
   Pluginprimer primer;
   config_t cfg;
@@ -128,23 +133,23 @@ dyn_load_plugin(const char* cfgfilename, Modespec* mode)
   do{
     /* try parsing file into config */
     if(!config_read(&cfg,cfgfile)) {
-      //  logerror("failed parsing config file\n@%d\t%s\n\tabandoning plugin",
-      //         config_error_line(&cfg),config_error_text(&cfg));
+      logerror("failed parsing config file\n@%d\t%s\n\tabandoning plugin",
+               config_error_line(&cfg),config_error_text(&cfg));
       greatsucces = -1;
       break;
     }
 
     /* try gathering info from config */
     if(!primer_fillfrom_config(&cfg,&primer)) {
-      //logerror("failed to find some definitions");
+      logerror("failed to find some definitions");
       greatsucces = -1;
       break;
     }
 
     /* try opening plugin shared object */
-    void* plugin_handle = dlopen(primer.libfile,RTLD_NOW|RTLD_GLOBAL);
+    void* plugin_handle = dlopen(primer.libfile,RTLD_NOW);
     if(!plugin_handle) {
-      //logerror("could not load shared library at %s\n\t%s",primer.libfile,dlerror());
+      logerror("could not load shared library at %s\n\t%s",primer.libfile,dlerror());
       greatsucces = -1;
       break;
     }
@@ -159,7 +164,7 @@ dyn_load_plugin(const char* cfgfilename, Modespec* mode)
     /* initialise variables of mode */
     void (*initvars)(Modespec* self) = dyn_add_method(plugin_handle,primer.name,"vars");
     if(initvars) {
-      //logsub("settling variables");
+      logsub("settling variables");
       initvars(mode);
     }
   } while(0);

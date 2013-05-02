@@ -1,7 +1,7 @@
 /*
  * imageding.c -- drawing program
  * written by Ogier van Garderen
- * copyright -- no warranty even for usability etc. --
+ * -- no warranty even for usability etc. --
  */
 
 /*
@@ -61,7 +61,7 @@ Modespec_el mode_array[] = {
   {"file" ,NULL,init__file},
   {"brush",NULL,init__brush},
   {"color",NULL,init__color},
-  {"select","configs/select.cfg",init__dynamic},
+  {"select","/home/okke/projects/imageding/configs/select.cfg",init__dynamic},
 };
 
 /*

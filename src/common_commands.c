@@ -25,11 +25,11 @@ int comm__brush_change_size(int argnum, char** args) {
 
 int comm__set_UImode(int argnum, char** args) {
   if(argnum > 1){
-    set_UImode(&global,args[1]);
+    set_UImode(&global,args[1],"");
     push_cur_mode(&global);
   }
   else
-    set_UImode(&global,"");
+    set_UImode(&global,"","");
   return 0;
 }
 
