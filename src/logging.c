@@ -2,13 +2,19 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include "logging.h"
+#include <string.h>
 
 int log_init(LOG* log, char* filename, int append) {
   FILE* file;
-  if(append)
-    file = fopen(filename,"a");
-  else
-    file = fopen(filename,"w");
+  if(strcmp(filename,"--")) {
+    if(append)
+      file = fopen(filename,"a");
+    else
+      file = fopen(filename,"w");
+  } else {
+    file = stdout;
+  }
+
   if(!file)
     return 0;
   *log = file;
@@ -20,7 +26,8 @@ int log_close(LOG* log){
   if(!log)
     return 0;
   writelog(*log,logtype_global,"Closing log");
-  fclose(*log);
+  if(*log != stdout && *log != stderr)
+    fclose(*log);
   return 1;
 }
 
@@ -42,8 +49,6 @@ void writelog(LOG log,int type,const char* fmt,...){
     fprintf(log,"\t"); break;
   }
   vfprintf(log,fmt,ap);
-  if(type == logtype_error)
-    vfprintf(stderr,fmt,ap);
   if(type == logtype_global)
       fprintf(log," --");
   fprintf(log,"\n");

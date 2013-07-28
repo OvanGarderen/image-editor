@@ -8,6 +8,7 @@
 #include "funcdefs.h"
 #include "internal_api.h"
 
+
 Modelist* create_Modelist(void) {
   Modelist* list = malloc(sizeof(Modelist));
   list->table = g_hash_table_new(g_str_hash, g_str_equal);
@@ -45,7 +46,7 @@ void _destruct_Modespec(gpointer key, gpointer value, gpointer userdata) {
 int fill_Modelist(Modelist* ml, Modespec_el* array, int num) {
   int i = 0;
   for(; i<num; i++) {
-    Modespec* _spec = method_call(&array[i],init);
+    Modespec* _spec = array[i].init(&array[i]);
     if(_spec) {
       add_Modespec(ml,_spec);
       logsub("init %s succesfull",array[i].name);

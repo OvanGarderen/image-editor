@@ -12,7 +12,7 @@ Modespec* init__file(Modespec_el* context) {
     sprintf(filevars.filename,"%s","");
     filevars.saved = 1;
 
-    modelog("save","registered");
+    modelog("file","registered");
     logsub("call");
     spec->call = call__file;
     spec->activate = activate__file;

@@ -9,6 +9,8 @@ typedef struct selectvars Selectvars;
 struct selectvars {
   int clickstatus;
   int clickpoint[2];
+  Color c_inactive;
+  Color c_active;
   Selection select;
 };
 
@@ -18,7 +20,7 @@ void set_selection(Modespec* self, Rect selection);
 
 /* METHODS */
 Modespec* init__select(Modespec_el* context);
-void vars__select(Modespec* vars);
+void vars__select(Modespec* vars, config_t* cfg);
 void draw__select(Modespec* self);
 int clickhandler__select(Modespec* self, SDL_MouseButtonEvent* mbev);
 int mousehandler__select(Modespec* self, SDL_MouseMotionEvent* motion);

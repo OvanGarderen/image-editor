@@ -12,15 +12,6 @@
 #include "dyn_loader.h"
 
 int
-dyn_stat_plugin(const char* libfile) 
-{ /* returns if library exists */
-  struct stat libstat;
-  if(stat(libfile,&libstat) == -1)
-    return 0;
-  return 1;
-}
-
-int
 primer_fillfrom_config(config_t* cfg, Pluginprimer* primer) 
 {
   int steady = 1;
@@ -78,14 +69,14 @@ method_inarray(int size, char** array, char* method)
 }
 
 void*
-dyn_add_method(void* plugin_handle,const char* object, const char* method) 
+dyn_add_method(void* plugin_handle,const char* object, const char* method)
 {
   char* funcname;
   void* method_handle;
   with(funcname,strappend(strappend(strclone((char*) method),"__"),(char*) object)) {
     method_handle = dlsym(plugin_handle,funcname);
     if(method_handle) {
-      lognote("added method %s (%p)",method,method_handle);
+      modelog(object,"added method %s (%p)",method,method_handle);
     } else {
       logwarning("could not find method %s",method);
     }
@@ -121,7 +112,7 @@ dyn_load_plugin(const char* cfgfilename, Modespec* mode)
     return -1;
   }
 
-  lognote("building from config file %s",cfgfilename);
+  modelog(mode->name,"building from config file %s",cfgfilename);
 
   Pluginprimer primer;
   config_t cfg;
@@ -162,10 +153,10 @@ dyn_load_plugin(const char* cfgfilename, Modespec* mode)
     dyn_build_Modespec(plugin_handle,&primer,mode);
 
     /* initialise variables of mode */
-    void (*initvars)(Modespec* self) = dyn_add_method(plugin_handle,primer.name,"vars");
+    void (*initvars)(Modespec* self, config_t* cfg) = dyn_add_method(plugin_handle,primer.name,"vars");
     if(initvars) {
-      logsub("settling variables");
-      initvars(mode);
+      modelog(mode->name,"settling variables");
+      initvars(mode,&cfg);
     }
   } while(0);
 

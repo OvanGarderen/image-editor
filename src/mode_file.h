@@ -10,7 +10,6 @@ struct filevars {
   int saved;
 };
 
-#define modelog(mode,fmt,args...) writelog(globallog,-1,"mode: %s :: " fmt,mode,##args)
 #define filevars_of(object) (ACC_VARS(object,Filevars))
 
 /* METHODS */

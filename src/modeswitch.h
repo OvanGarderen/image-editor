@@ -49,4 +49,4 @@ int fill_Modelist(Modelist* ml, Modespec_el* array, int num);
 Modespec* init__Modespec(Modespec_el* context);
 int call__Modespec(Modelist* ml, char* fullcomm);
 
-#define modelog(mode,fmt,args...) writelog(globallog,-1,"mode: %s :: " fmt,mode,##args)
+#define modelog(mode,fmt,args...) writelog(globallog,-1,"[%s] " fmt, mode , ##args)

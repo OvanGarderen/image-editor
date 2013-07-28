@@ -1,12 +1,13 @@
 #include <SDL.h>
 #include <SDL_gfxPrimitives.h>
+#include <libconfig.h>
 
 #include "mode_select.h"
 #include "colors.h"
 #include "selection.h"
 #include "internal_api.h"
+#include "configreader.c"
 
-Selectvars selectvars;
 #define get(obj,var) (((Selectvars*) (obj)->vars)->var)
 #define get_global(obj,var) ((obj)->global->var) 
 
@@ -20,22 +21,34 @@ void shut_selection(Modespec* self) {
 }
 
 /* METHODS */
-void vars__select(Modespec* self) {
-  self->vars = calloc(1,sizeof(Selectvars));
-  get(self,select) = (Selection) {.active=0};
-  register__global_selection(self->global,&get(self,select));
-  fprintf(stderr,"registring\n");
+void vars__select(Modespec* self,config_t* cfg) {
+  Selectvars* vars = self->vars = calloc(1,sizeof(Selectvars));
+  
+  vars->select = (Selection) {.active=0};
+
+  vars->c_active = c_red;
+  vars->c_inactive = c_green;
+
+  if(cfg_varparse( cfg, "c_active", cfg_col, &vars->c_active))
+    lognote("[select] set c_active = %x",vars->c_active);
+  if(cfg_varparse( cfg, "c_inactive", cfg_col, &vars->c_inactive))
+    lognote("[select] set c_inactive = %x",vars->c_inactive);
+
+  register__global_selection(self->global,&vars->select);
   register__draw(self->global,draw__select,self);
-  fprintf(stderr,"tis gedaan\n");
 }
 
 void draw__select(Modespec* self) {
-  if(get(self,select).active)
+  Selectvars* vars = self->vars;
+
+  if( vars->select.active )
     draw_selection(get_global(self,screen),
-		   &get(self,select),c_green);
-  else if(get(self,clickstatus))
+		   &(vars->select),
+		   vars->c_inactive);
+  else if( vars->clickstatus )
     draw_selection(get_global(self,screen),
-		   &get(self,select),c_fuchsia);
+		   &(vars->select),
+		   vars->c_active);
 }
 
 int clickhandler__select(Modespec* self, SDL_MouseButtonEvent* mbev) {

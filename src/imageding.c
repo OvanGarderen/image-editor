@@ -60,7 +60,7 @@ Funcdef_el command_array[] = {
 Modespec_el mode_array[] = {
   {"file" ,NULL,init__file},
   {"brush",NULL,init__brush},
-  {"color",NULL,init__color},
+  {"color","/home/okke/projects/imageding/configs/color.cfg",init__dynamic},
   {"select","/home/okke/projects/imageding/configs/select.cfg",init__dynamic},
 };
 
@@ -69,7 +69,7 @@ Modespec_el mode_array[] = {
  */
 
 int main(int argc, char** argv) {
-  log_init(&globallog,"logimg",0);
+  log_init(&globallog,"--",0);
 
   srand(time(NULL));
 
@@ -148,6 +148,10 @@ int init_global(void) {
   global.screen = init_videomode(global.screenw,global.screenh);
   clear_window(&global, c_ltgray);
 
+  lognote("constructing list of colors");
+  global.colorlist.end = NULL;
+  add_standard_colors(&global.colorlist);
+
   lognote("constructing list of modes");
   global.modelist = create_Modelist();
   fill_Modelist(global.modelist,mode_array,arraylen(mode_array));
@@ -163,11 +167,6 @@ int init_global(void) {
   global.active = true;
   global.mb_down= false;
   global.suppres= false;
-
-  lognote("constructing list of colors");
-  global.colorlist.end = NULL;
-  add_standard_colors(&global.colorlist);
-  *global.color = c_orange;
 
   lognote("constructing list of callable functions");
   global.funcs.end = NULL;
